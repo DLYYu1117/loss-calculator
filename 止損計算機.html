@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>損失計算器</title>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 40px 10px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1, h2 {
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      background-color: #2c2c2c;
+      color: #fff;
+      margin: 20px 0;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    td {
+      padding: 12px;
+      border: 1px solid #444;
+    }
+
+    input[type="number"] {
+      width: 100px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #888;
+      background-color: #1a1a1a;
+      color: #fff;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 0;
+      background-color: #00b894;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #019875;
+    }
+
+    .percent-table {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>損失計算器</h1>
+
+  <table>
+    <tr>
+      <td>每一次損失的錢</td>
+      <td><input type="number" id="lossAmount"></td>
+    </tr>
+    <tr>
+      <td>進場價格</td>
+      <td><input type="number" id="entryPrice"></td>
+    </tr>
+    <tr>
+      <td>止損價格</td>
+      <td><input type="number" id="stopLossPrice"></td>
+    </tr>
+    <tr>
+      <td>可以放入的資金</td>
+      <td id="capital"></td>
+    </tr>
+    <tr>
+      <td>換算顆數</td>
+      <td id="positionSize"></td>
+    </tr>
+  </table>
+
+  <button onclick="calculateValues()">計算</button>
+
+  <h2>依止損百分比可投入資金</h2>
+  <table>
+    <tr>
+      <td>輸入可損失金額</td>
+      <td><input type="number" id="percentLossAmount" oninput="calculateRiskByPercent()"></td>
+    </tr>
+  </table>
+
+  <div class="percent-table">
+    <table id="percentTable1"></table>
+    <table id="percentTable2"></table>
+  </div>
+</div>
+
+<script>
+  function calculateValues() {
+    var lossAmount = parseFloat(document.getElementById("lossAmount").value);
+    var entryPrice = parseFloat(document.getElementById("entryPrice").value);
+    var stopLossPrice = parseFloat(document.getElementById("stopLossPrice").value);
+
+    if (isNaN(lossAmount) || isNaN(entryPrice) || isNaN(stopLossPrice)) return;
+
+    var positionSize = Math.abs(lossAmount / (entryPrice - stopLossPrice));
+    var capital = Math.abs(positionSize * entryPrice);
+
+    document.getElementById("capital").innerText = capital.toFixed(2);
+    document.getElementById("positionSize").innerText = positionSize.toFixed(2);
+  }
+
+  function calculateRiskByPercent() {
+    var loss = parseFloat(document.getElementById("percentLossAmount").value);
+    if (isNaN(loss) || loss <= 0) return;
+
+    var table1 = document.getElementById("percentTable1");
+    var table2 = document.getElementById("percentTable2");
+    table1.innerHTML = "";
+    table2.innerHTML = "";
+
+    for (let i = 1; i <= 10; i++) {
+      var percent = i / 100;
+      var amount = loss / percent;
+      var row = `<tr><td>止損 ${i}%</td><td>${amount.toFixed(2)}</td></tr>`;
+      if (i <= 5) {
+        table1.innerHTML += row;
+      } else {
+        table2.innerHTML += row;
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
