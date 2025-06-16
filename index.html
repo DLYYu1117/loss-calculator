@@ -37,9 +37,10 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
-    td {
+    td, th {
       padding: 12px;
       border: 1px solid #444;
+      text-align: center;
     }
 
     input[type="number"] {
@@ -97,14 +98,14 @@
       <td id="capital"></td>
     </tr>
     <tr>
-      <td>換算顆數</td>
-      <td id="positionSize"></td>
+      <td>止損百分比(%)</td>
+      <td id="stopLossPercent"></td>
     </tr>
   </table>
 
   <button onclick="calculateValues()">計算</button>
 
-  <h2>依止損百分比可投入資金</h2>
+  <h2>依止損位置可投入資金</h2>
   <table>
     <tr>
       <td>輸入可損失金額</td>
@@ -120,17 +121,27 @@
 
 <script>
   function calculateValues() {
-    var lossAmount = parseFloat(document.getElementById("lossAmount").value);
-    var entryPrice = parseFloat(document.getElementById("entryPrice").value);
-    var stopLossPrice = parseFloat(document.getElementById("stopLossPrice").value);
+    const lossAmount = parseFloat(document.getElementById("lossAmount").value);
+    const entryPrice = parseFloat(document.getElementById("entryPrice").value);
+    const stopLossPrice = parseFloat(document.getElementById("stopLossPrice").value);
+
+    const capitalEl = document.getElementById("capital");
+    const stopLossPercentEl = document.getElementById("stopLossPercent");
 
     if (isNaN(lossAmount) || isNaN(entryPrice) || isNaN(stopLossPrice)) return;
 
-    var positionSize = Math.abs(lossAmount / (entryPrice - stopLossPrice));
-    var capital = Math.abs(positionSize * entryPrice);
+    if (entryPrice === stopLossPrice) {
+      capitalEl.innerText = "價格錯誤";
+      stopLossPercentEl.innerText = "價格錯誤";
+      return;
+    }
 
-    document.getElementById("capital").innerText = capital.toFixed(2);
-    document.getElementById("positionSize").innerText = positionSize.toFixed(2);
+    const positionSize = Math.abs(lossAmount / (entryPrice - stopLossPrice));
+    const capital = Math.abs(positionSize * entryPrice);
+    const stopLossPercent = Math.abs((entryPrice - stopLossPrice) / entryPrice) * 100;
+
+    capitalEl.innerText = capital.toFixed(2);
+    stopLossPercentEl.innerText = stopLossPercent.toFixed(2) + "%";
   }
 
   function calculateRiskByPercent() {
@@ -145,7 +156,7 @@
     for (let i = 1; i <= 10; i++) {
       var percent = i / 100;
       var amount = loss / percent;
-      var row = `<tr><td>止損 ${i}%</td><td>${amount.toFixed(2)}</td></tr>`;
+      var row = `<tr><td>止損位置 ${i}%</td><td>${amount.toFixed(2)}</td></tr>`;
       if (i <= 5) {
         table1.innerHTML += row;
       } else {
