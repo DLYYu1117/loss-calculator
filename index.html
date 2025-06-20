@@ -98,6 +98,10 @@
       <td id="capital"></td>
     </tr>
     <tr>
+      <td>被吃手續費後可投入的資金</td>
+      <td id="capitalAfterFee"></td>
+    </tr>
+    <tr>
       <td>止損百分比(%)</td>
       <td id="stopLossPercent"></td>
     </tr>
@@ -126,21 +130,33 @@
     const stopLossPrice = parseFloat(document.getElementById("stopLossPrice").value);
 
     const capitalEl = document.getElementById("capital");
+    const capitalAfterFeeEl = document.getElementById("capitalAfterFee");
     const stopLossPercentEl = document.getElementById("stopLossPercent");
 
     if (isNaN(lossAmount) || isNaN(entryPrice) || isNaN(stopLossPrice)) return;
 
     if (entryPrice === stopLossPrice) {
       capitalEl.innerText = "價格錯誤";
+      capitalAfterFeeEl.innerText = "價格錯誤";
       stopLossPercentEl.innerText = "價格錯誤";
       return;
     }
 
-    const positionSize = Math.abs(lossAmount / (entryPrice - stopLossPrice));
+    // 原始計算
+    const priceDiff = entryPrice - stopLossPrice;
+    const positionSize = Math.abs(lossAmount / priceDiff);
     const capital = Math.abs(positionSize * entryPrice);
-    const stopLossPercent = Math.abs((entryPrice - stopLossPrice) / entryPrice) * 100;
+    const stopLossPercent = Math.abs(priceDiff / entryPrice) * 100;
+
+    // 含手續費版本：假設手續費總計為 0.1%（進+出）
+    // 真實損失 = 價差 + 資金 * 0.001（手續費）
+    // 解釋：損失 = positionSize * (entryPrice - stopLossPrice) + capital * 0.001
+    // 我們改寫成：lossAmount = capital * (priceDiff / entryPrice + 0.001)
+    const effectiveLossPercent = Math.abs(priceDiff / entryPrice) + 0.001;
+    const capitalWithFee = lossAmount / effectiveLossPercent;
 
     capitalEl.innerText = capital.toFixed(2);
+    capitalAfterFeeEl.innerText = capitalWithFee.toFixed(2);
     stopLossPercentEl.innerText = stopLossPercent.toFixed(2) + "%";
   }
 
